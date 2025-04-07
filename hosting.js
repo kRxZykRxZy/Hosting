@@ -26,10 +26,12 @@ app.get('/', (req, res) => {
     </div>
     <div class="text-center">
       <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button>
+      <a id="link" href="#" style="color: green;"><a>
     </div>
   </div>
 
   <script>
+    const image Link = document.getElementById('link');
     async function uploadImage() {
       const fileInput = document.getElementById('imageInput');
       const file = fileInput.files[0];
@@ -62,7 +64,8 @@ app.get('/', (req, res) => {
         });
 
         const result = await response.text();
-        alert(result);
+        const imageLink.href = result;
+        const imageLink.textContent = "View Image" 
       };
       
       reader.readAsDataURL(file);
