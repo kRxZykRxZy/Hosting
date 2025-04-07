@@ -64,8 +64,8 @@ app.get('/', (req, res) => {
         });
 
         const result = await response.text();
-        const imageLink.href = result;
-        const imageLink.textContent = "View Image" 
+        imageLink.href = result;
+        imageLink.textContent = "View Image" 
       };
       
       reader.readAsDataURL(file);
