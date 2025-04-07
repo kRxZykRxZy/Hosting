@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
   </div>
 
   <script>
-    const image Link = document.getElementById('link');
+    const imageLink = document.getElementById('link');
     async function uploadImage() {
       const fileInput = document.getElementById('imageInput');
       const file = fileInput.files[0];
