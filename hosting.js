@@ -5,8 +5,10 @@ const path = require("path");
 const app = express();
 
 app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.static('uploads')); // Serve static files
 
-app.post('/', (req, res) => {
+// Home route
+app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,6 +74,8 @@ app.post('/', (req, res) => {
 </body>
 </html>`);
 });
+
+// Image upload handling route
 app.post('/upload', (req, res) => {
   const { image, ip, imageName, fileType } = req.body;
   if (!image || !ip || !imageName || !fileType) return res.status(400).send('Image, IP, imageName, and fileType are required');
@@ -90,7 +94,8 @@ app.post('/upload', (req, res) => {
   });
 });
 
+// Serve static files from the 'uploads' directory
 app.use('/:ip', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
