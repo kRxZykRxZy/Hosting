@@ -14,12 +14,12 @@ app.use(express.static(path.join(__dirname, 'uploads')));
 // Import route files
 const authRoutes = require('./auth.js');
 const uploadRoutes = require('./upload.js');
-const uploadRoutes = require('./home.js');
+const homeRoutes = require('./home.js');
 
 // Mount routes
 app.use(authRoutes);
 app.use(uploadRoutes);
-app.use(homeroutes);
+app.use(homeRoutes);
 
 // ONE app.listen here
 const PORT = process.env.PORT || 3000;
