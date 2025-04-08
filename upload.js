@@ -35,7 +35,7 @@ router.get('/upload', (req, res) => {
           const password = localStorage.getItem('password');
 
           if (!file) return alert('Select an image');
-          if (!password) return alert('Please enter your password');
+          if (!password) return alert('Please login to upload images');
 
           const reader = new FileReader();
           reader.onloadend = async () => {
