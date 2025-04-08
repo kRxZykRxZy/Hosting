@@ -7,12 +7,38 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// In-memory "user database" (not persistent, only for demo)
+// In-memory data
 const users = [
   { username: 'admin', passwordHash: bcrypt.hashSync('password123', 10) }, // Example user
 ];
 
-// Serve the login page
+// Handle POST request for login
+app.post('/api/login/json', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(user => user.username === username);
+
+  if (user && bcrypt.compareSync(password, user.passwordHash)) {
+    res.json({ message: 'Login successful', username });
+  } else {
+    res.status(401).json({ message: 'Login failed. Invalid username or password.' });
+  }
+});
+
+// Handle POST request for signup
+app.post('/api/signup/json', (req, res) => {
+  const { username, password } = req.body;
+  
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    return res.status(400).json({ message: 'Username already taken' });
+  }
+  const passwordHash = bcrypt.hashSync(password, 10);
+  users.push({ username, passwordHash });
+
+  res.json({ message: 'User successfully created', username });
+});
+
+// Serve the login page (GET)
 app.get('/login', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -54,7 +80,7 @@ app.get('/login', (req, res) => {
   `);
 });
 
-// Serve the signup page
+// Serve the signup page (GET)
 app.get('/signup', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -94,30 +120,6 @@ app.get('/signup', (req, res) => {
     </body>
     </html>
   `);
-});
-
-app.post('/api/signup/json', (req, res) => {
-  const { username, password } = req.body;
-  
-  const existingUser = users.find(user => user.username === username);
-  if (existingUser) {
-    return res.status(400).json({ message: 'Username already taken' });
-  }
-  const passwordHash = bcrypt.hashSync(password, 10);
-  users.push({ username, passwordHash });
-
-  res.json({ message: 'User successfully created', username });
-});
-
-app.post('/api/login/json', (req, res) => {
-  const { username, password } = req.body;
-  const user = users.find(user => user.username === username);
-
-  if (user && bcrypt.compareSync(password, user.passwordHash)) {
-    res.json({ message: 'Login successful', username });
-  } else {
-    res.status(401).json({ message: 'Login failed. Invalid username or password.' });
-  }
 });
 
 // Start the server
