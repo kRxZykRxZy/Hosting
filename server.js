@@ -12,8 +12,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 // Import route files (these are the 2 separate scripts)
-const authRoutes = require('./auth');
-const uploadRoutes = require('./upload');
+const authRoutes = require('./auth.js');
+const uploadRoutes = require('./upload.js');
 
 // Mount routes
 app.use(authRoutes);
