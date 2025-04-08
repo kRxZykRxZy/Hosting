@@ -21,9 +21,6 @@ router.get('/upload', (req, res) => {
         <div class="d-flex justify-content-center">
           <input type="file" id="imageInput" class="form-control mb-3" />
         </div>
-        <div class="mb-3">
-          <input type="password" id="passwordInput" class="form-control" placeholder="Enter password" />
-        </div>
         <div class="text-center">
           <button class="btn btn-primary" onclick="uploadImage()">Upload</button><br><br>
           <a id="link" href="#" style="color: green;"></a>
@@ -33,9 +30,9 @@ router.get('/upload', (req, res) => {
       <script>
         async function uploadImage() {
           const fileInput = document.getElementById('imageInput');
-          const passwordInput = document.getElementById('passwordInput');
+          const passwordInput = localStorage.getItem('password');
           const file = fileInput.files[0];
-          const password = passwordInput.value;
+          const password = localStorage.getItem('password');
 
           if (!file) return alert('Select an image');
           if (!password) return alert('Please enter your password');
