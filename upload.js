@@ -54,9 +54,9 @@ router.get('/upload', (req, res) => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 image: base64Image,
-                ip,
+                ip: ip, 
                 imageName: file.name,
-                fileType,
+                fileType: fileType, 
                 username: localStorage.getItem('loggedIn'),
                 password: password // Send password for verification
               })
@@ -97,7 +97,7 @@ router.post('/api/upload/json', (req, res) => {
     fs.writeFile(fullFilePath, buffer, (err) => {
       if (err) return res.status(500).send('Failed to save file');
 
-      const url = `http://${req.headers.host}/${username}/${imageName}.${fileType}`;
+      const url = `https://${req.headers.host}/${username}/${imageName}.${fileType}`;
       res.send(url);
     });
   });
