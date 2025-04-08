@@ -8,7 +8,7 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('uploads')); // Serve static files
 
 // Home route
-app.get('/', (req, res) => {
+app.get('/upload', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,6 +26,7 @@ app.get('/', (req, res) => {
     </div>
     <div class="text-center">
       <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button><br>
+      <br>
       <a id="link" href="#" style="color: green;"><a>
     </div>
   </div>
@@ -47,6 +48,12 @@ app.get('/', (req, res) => {
       const reader = new FileReader();
       reader.onloadend = async function () {
         const base64Image = reader.result.split(',')[1];
+        if(file.name === "jpg" || file.name === "png" || file.name === "webp" || file.name === "fts") {
+          alert("Invalid File Type");
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
+         } 
 
         const formData = {
           image: base64Image,
@@ -65,7 +72,7 @@ app.get('/', (req, res) => {
 
         const result = await response.text();
         imageLink.href = result;
-        imageLink.textContent = "View Image" 
+        imageLink.textContent = "View Upload" 
       };
       
       reader.readAsDataURL(file);
@@ -79,7 +86,7 @@ app.get('/', (req, res) => {
 });
 
 // Image upload handling route
-app.post('/upload', (req, res) => {
+app.post('/api/upload/json', (req, res) => {
   const { image, ip, imageName, fileType } = req.body;
   if (!image || !ip || !imageName || !fileType) return res.status(400).send('Image, IP, imageName, and fileType are required');
   
