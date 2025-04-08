@@ -39,7 +39,7 @@ app.post('/api/signup/json', (req, res) => {
 });
 
 // Serve the login page (GET)
-app.get('/login', (req, res) => {
+app.post('/login', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -81,7 +81,7 @@ app.get('/login', (req, res) => {
 });
 
 // Serve the signup page (GET)
-app.get('/signup', (req, res) => {
+app.post('/signup', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
