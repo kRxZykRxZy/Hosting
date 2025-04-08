@@ -1,11 +1,22 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');  // Used to generate random verification codes
+const nodemailer = require('nodemailer');  // Nodemailer module
 const router = express.Router();
 
 // In-memory storage of users (for demonstration purposes)
 let users = [
-  { username: 'admin', passwordHash: bcrypt.hashSync('password123', 10) }
+  { username: 'admin', email: 'admin@example.com', passwordHash: bcrypt.hashSync('password123', 10), isVerified: true }
 ];
+
+// Create a transporter for sending emails (using Gmail in this example)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'hi1992@yogirt.com',  
+    pass: 'hi1992'    
+  }
+});
 
 // GET route for login page
 router.get('/login', (req, res) => {
@@ -54,7 +65,6 @@ router.get('/login', (req, res) => {
           if (response.ok) {
             // Store username in localStorage
             localStorage.setItem('loggedIn', data.username);
-            localStorage.setItem('password', password);
             // Redirect to home page
             window.location.href = '/';
           } else {
@@ -72,6 +82,9 @@ router.post('/api/login/json', (req, res) => {
   const { username, password } = req.body;
   const user = users.find(u => u.username === username);
   if (user && bcrypt.compareSync(password, user.passwordHash)) {
+    if (!user.isVerified) {
+      return res.status(400).json({ message: 'Please verify your email address.' });
+    }
     res.json({ message: 'Login successful', username });
   } else {
     res.status(401).json({ message: 'Login failed' });
@@ -98,6 +111,10 @@ router.get('/signup', (req, res) => {
             <input type="text" class="form-control" id="username" name="username" required>
           </div>
           <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <div class="mb-3">
             <label for="password" class="form-label">Password</label>
             <input type="password" class="form-control" id="password" name="password" required>
           </div>
@@ -114,18 +131,72 @@ router.get('/signup', (req, res) => {
 
 // POST route for signup
 router.post('/api/signup/json', (req, res) => {
-  const { username, password } = req.body;
+  const { username, email, password } = req.body;
+
+  // Check if the username already exists
   if (users.find(u => u.username === username)) {
     return res.status(400).json({ message: 'Username already taken' });
   }
-  users.push({ username, passwordHash: bcrypt.hashSync(password, 10) });
-  res.json({ message: 'User created successfully', username });
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  // Hash the password and store the new user with email and verification status
+  const passwordHash = bcrypt.hashSync(password, 10);
+  const verificationCode = crypto.randomBytes(6).toString('hex'); // Generate a random 6-digit code
+
+  users.push({
+    username,
+    email,
+    passwordHash,
+    isVerified: false, // Email needs to be verified
+    verificationCode
+  });
+
+  // Send verification email
+  const mailOptions = {
+    from: 'hi1992@yogirt.com',  // Your Gmail address
+    to: email,
+    subject: 'Email Verification for UBBload',
+    html: `
+      <p>Thank you for signing up! Please verify your email address by clicking the link below:</p>
+      <p><a href="https://ubbload.onrender.com/verify-email/${verificationCode}">Verify Email</a></p>
+    `
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log('Error sending email:', error);
+      return res.status(500).json({ message: 'Error sending verification email' });
+    }
+    console.log('Verification email sent:', info.response);
+  });
+
+  // Redirect to the login page after signup
+  res.redirect('/login');
+});
+
+// GET route for email verification
+router.get('/verify-email/:code', (req, res) => {
+  const { code } = req.params;
+  const user = users.find(u => u.verificationCode === code);
+
+  if (user) {
+    user.isVerified = true;
+    user.verificationCode = null; // Clear the code after verification
+    return res.send('Email verified successfully! You can now log in.');
+  } else {
+    return res.status(400).send('Invalid or expired verification code.');
+  }
 });
 
 // POST route to confirm password before uploading
 router.post('/api/upload/confirm', (req, res) => {
   const { password, username } = req.body;
-  
+
   const user = users.find(u => u.username === username);
 
   if (user && bcrypt.compareSync(password, user.passwordHash)) {
