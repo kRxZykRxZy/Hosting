@@ -11,13 +11,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Static folder for uploads
 app.use(express.static(path.join(__dirname, 'uploads')));
 
-// Import route files (these are the 2 separate scripts)
+// Import route files
 const authRoutes = require('./auth.js');
 const uploadRoutes = require('./upload.js');
+const uploadRoutes = require('./home.js');
 
 // Mount routes
 app.use(authRoutes);
 app.use(uploadRoutes);
+app.use(homeroutes);
 
 // ONE app.listen here
 const PORT = process.env.PORT || 3000;
