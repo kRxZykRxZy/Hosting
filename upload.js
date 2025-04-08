@@ -64,7 +64,7 @@ router.get('/upload', (req, res) => {
 
             const result = await response.text();
             const link = document.getElementById('link');
-            link.href = result;
+            link.href = `https:/ubbload.onrender.com/uploads/${localStorage.getItem('username')}/${file.name}.${fileType}`;
             link.textContent = "View Upload";
           };
           reader.readAsDataURL(file);
