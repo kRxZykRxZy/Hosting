@@ -2,7 +2,10 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const router = express.Router();
-const { verifyPassword } = require('./auth');  // Import the password verification function
+const { verifyPassword } = require('./auth');
+
+// Middleware to parse JSON
+router.use(express.json({ limit: '10mb' }));
 
 // Serve the upload page
 router.get('/upload', (req, res) => {
@@ -30,22 +33,22 @@ router.get('/upload', (req, res) => {
       <script>
         async function uploadImage() {
           const fileInput = document.getElementById('imageInput');
-          const passwordInput = localStorage.getItem('password');
           const file = fileInput.files[0];
           const password = localStorage.getItem('password');
+          const username = localStorage.getItem('username');
 
           if (!file) return alert('Select an image');
-          if (!password) return alert('Please login to upload images');
+          if (!password || !username) return alert('Please login to upload images');
+
+          const fileType = file.name.split('.').pop().toLowerCase();
+          if (!['jpg', 'jpeg', 'png', 'webp'].includes(fileType)) {
+            alert('Invalid file type');
+            return;
+          }
 
           const reader = new FileReader();
           reader.onloadend = async () => {
             const base64Image = reader.result.split(',')[1];
-            const fileType = file.name.split('.').pop();
-            if (!['jpg', 'jpeg', 'png', 'webp'].includes(fileType)) {
-              alert('Invalid file type');
-              return location.reload();
-            }
-
             const ipRes = await fetch('https://api.ipify.org/?format=json');
             const ip = (await ipRes.json()).ip;
 
@@ -54,19 +57,20 @@ router.get('/upload', (req, res) => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 image: base64Image,
-                ip: ip, 
+                ip,
                 imageName: file.name,
-                fileType: fileType, 
-                username: localStorage.getItem('loggedIn'),
-                password: password // Send password for verification
+                fileType,
+                username,
+                password
               })
             });
 
             const result = await response.text();
             const link = document.getElementById('link');
-            link.href = `https:/ubbload.onrender.com/uploads/${localStorage.getItem('username')}/${file.name}.${fileType}`;
+            link.href = result;
             link.textContent = "View Upload";
           };
+
           reader.readAsDataURL(file);
         }
       </script>
@@ -76,31 +80,45 @@ router.get('/upload', (req, res) => {
 });
 
 // Upload handler
-router.post('/api/upload/json', (req, res) => {
-  const { image, ip, imageName, fileType, username, password } = req.body;
+router.post('/api/upload/json', async (req, res) => {
+  try {
+    const { image, ip, imageName, fileType, username, password } = req.body;
 
-  if (!image || !ip || !imageName || !fileType || !username || !password)
-    return res.status(400).send('Missing required fields');
+    if (!image || !ip || !imageName || !fileType || !username || !password) {
+      return res.status(400).send('Missing required fields');
+    }
 
-  // Verify password
-  if (!verifyPassword(username, password)) {
-    return res.status(401).send('Incorrect password');
-  }
+    const valid = await verifyPassword(username, password);
+    if (!valid) {
+      return res.status(401).send('Incorrect password');
+    }
 
-  const buffer = Buffer.from(image, 'base64');
-  const uploadPath = path.join(__dirname, 'uploads', username);
+    // Validate extension
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+    if (!allowedExtensions.includes(fileType.toLowerCase())) {
+      return res.status(400).send('Unsupported file type');
+    }
 
-  fs.mkdir(uploadPath, { recursive: true }, (err) => {
-    if (err) return res.status(500).send('Failed to create directory');
+    // Sanitize filename
+    const safeName = path.parse(imageName).name.replace(/[^a-zA-Z0-9_-]/g, '');
+    const fullFilePath = path.join(__dirname, 'uploads', username, `${safeName}.${fileType}`);
 
-    const fullFilePath = path.join(uploadPath, `${imageName}.${fileType}`);
-    fs.writeFile(fullFilePath, buffer, (err) => {
-      if (err) return res.status(500).send('Failed to save file');
+    // Ensure upload directory exists
+    fs.mkdir(path.dirname(fullFilePath), { recursive: true }, (err) => {
+      if (err) return res.status(500).send('Failed to create upload directory');
 
-      const url = `https://${req.headers.host}/${username}/${imageName}.${fileType}`;
-      res.send(url);
+      const buffer = Buffer.from(image, 'base64');
+      fs.writeFile(fullFilePath, buffer, (err) => {
+        if (err) return res.status(500).send('Failed to save file');
+
+        const url = `https://${req.headers.host}/uploads/${username}/${safeName}.${fileType}`;
+        res.send(url);
+      });
     });
-  });
+  } catch (err) {
+    console.error('Upload error:', err);
+    res.status(500).send('Server error during upload');
+  }
 });
 
 module.exports = router;
