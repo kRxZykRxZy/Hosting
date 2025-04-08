@@ -14,15 +14,17 @@ app.get('/', (req, res) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UBBload Home</title>
+  <center><h1>UBBload Home</h1>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body class="bg-dark text-white">
   <div class="container">
   <a href="upload" class="button">Image Upload</a>
-  </div></body></html>`) 
+  </div></center></body></html>`);
 });
+
 // Upload route
-app.post('/upload', (req, res) => {
+app.get('/upload', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +43,7 @@ app.post('/upload', (req, res) => {
     <div class="text-center">
       <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button><br>
       <br>
-      <a id="link" href="#" style="color: green;"><a>
+      <a id="link" href="#" style="color: green;"></a>
     </div>
   </div>
 
@@ -62,21 +64,24 @@ app.post('/upload', (req, res) => {
       const reader = new FileReader();
       reader.onloadend = async function () {
         const base64Image = reader.result.split(',')[1];
-        if(file.name === "jpg" || file.name === "png" || file.name === "webp" || file.name === "fts") {
+
+        const fileType = file.name.split('.').pop();
+        if (!['jpg', 'png', 'webp', 'jpeg'].includes(fileType)) {
           alert("Invalid File Type");
           setTimeout(() => {
             location.reload();
           }, 2000);
-         } 
+          return;
+        }
 
         const formData = {
           image: base64Image,
           ip: ip,
           imageName: file.name,
-          fileType: file.type.split('/')[1]
+          fileType: fileType
         };
 
-        const response = await fetch(window.location.href + 'api/upload/json', {
+        const response = await fetch('/api/upload/json', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -86,7 +91,7 @@ app.post('/upload', (req, res) => {
 
         const result = await response.text();
         imageLink.href = result;
-        imageLink.textContent = "View Upload" 
+        imageLink.textContent = "View Upload";
       };
       
       reader.readAsDataURL(file);
@@ -105,15 +110,15 @@ app.post('/api/upload/json', (req, res) => {
   if (!image || !ip || !imageName || !fileType) return res.status(400).send('Image, IP, imageName, and fileType are required');
   
   const buffer = Buffer.from(image, 'base64');
-  const imagePath = path.join(__dirname, 'uploads', `${ip}`, `${imageName}.${fileType}`);
-  
+  const imagePath = path.join(__dirname, 'uploads', `${ip}`, `${imageName}`);
+
   fs.mkdir(path.join(__dirname, 'uploads', ip), { recursive: true }, (err) => {
     if (err) return res.status(500).send('Error creating directory');
     
-    fs.writeFile(imagePath, buffer, (err) => {
+    fs.writeFile(`${imagePath}.${fileType}`, buffer, (err) => {
       if (err) return res.status(500).send('Error saving the image');
       const url = `https://${req.headers.host}/${ip}/${imageName}.${fileType}`;
-      res.send(`${url}`);
+      res.send(url);
     });
   });
 });
