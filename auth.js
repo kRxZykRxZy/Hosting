@@ -36,6 +36,31 @@ router.get('/login', (req, res) => {
           <a href="/signup" class="text-white">Don't have an account? Sign up here</a>
         </div>
       </div>
+      <script>
+        // Handle form submission via JavaScript to manage the localStorage and redirection
+        const loginForm = document.getElementById('loginForm');
+        loginForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const username = document.getElementById('username').value;
+          const password = document.getElementById('password').value;
+          const response = await fetch('/api/login/json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+          });
+          const data = await response.json();
+          if (response.ok) {
+            // Store username in localStorage
+            localStorage.setItem('loggedIn', data.username);
+            // Redirect to home page
+            window.location.href = '/';
+          } else {
+            alert(data.message || 'Login failed');
+          }
+        };
+      </script>
     </body>
     </html>
   `);
