@@ -54,6 +54,7 @@ router.get('/login', (req, res) => {
           e.preventDefault();
           const username = document.getElementById('username').value;
           const password = document.getElementById('password').value;
+          localStorage.setItem('password', password);
           const response = await fetch('/api/login/json', {
             method: 'POST',
             headers: {
