@@ -184,4 +184,4 @@ function verifyPassword(username, password) {
 }
 
 module.exports = router;
-module.exports.verifyPassword = verifyPassword;
+module.exports.verifyPassword = { router, verifyPassword };
