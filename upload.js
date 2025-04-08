@@ -93,17 +93,14 @@ router.post('/api/upload/json', async (req, res) => {
       return res.status(401).send('Incorrect password');
     }
 
-    // Validate extension
     const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
     if (!allowedExtensions.includes(fileType.toLowerCase())) {
       return res.status(400).send('Unsupported file type');
     }
 
-    // Sanitize filename
     const safeName = path.parse(imageName).name.replace(/[^a-zA-Z0-9_-]/g, '');
     const fullFilePath = path.join(__dirname, 'uploads', username, `${safeName}.${fileType}`);
 
-    // Ensure upload directory exists
     fs.mkdir(path.dirname(fullFilePath), { recursive: true }, (err) => {
       if (err) return res.status(500).send('Failed to create upload directory');
 
