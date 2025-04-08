@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation - UBBload</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .container { margin-top: 50px; }
+    .card { margin-bottom: 30px; }
+    .card-header { background-color: #007bff; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">UBBload API Documentation</h1>
+
+    <!-- Upload Endpoint Documentation -->
+    <div class="card">
+      <div class="card-header">
+        <h3>Image Upload Endpoint</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>Endpoint:</strong> <code>/api/upload/json</code></p>
+        <p><strong>Method:</strong> POST</p>
+        <p><strong>Description:</strong> Upload an image to the server (password confirmation required).</p>
+        <p><strong>Request Body:</strong></p>
+        <pre>
+{
+  "image": "base64EncodedImageString",
+  "ip": "User's IP address",
+  "imageName": "image.png",
+  "fileType": "png",
+  "username": "username",
+  "password": "password"
+}
+        </pre>
+        <p><strong>Response Example:</strong></p>
+        <pre>
+{
+  "url": "http://localhost/uploads/username/image.png"
+}
+        </pre>
+        <p><strong>Error Response:</strong> 400 if any required fields are missing, 401 for incorrect password, 500 for server errors.</p>
+      </div>
+    </div>
+
+    <!-- Other API documentation sections here -->
+
+  </div>
+</body>
+</html>
