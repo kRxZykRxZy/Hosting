@@ -7,14 +7,28 @@ const app = express();
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('uploads')); // Serve static files
 
-// Home route
-app.get('/upload', (req, res) => {
+app.get('/', (req, res) => {
+  res.send(`<DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UBBload Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-dark text-white">
+  <div class="container">
+  <a href="upload" class="button">Image Upload</a>
+  </div></body></html>`) 
+});
+// Upload route
+app.post('/upload', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UBBload</title>
+  <title>UBBload Image Uploading</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-white">
@@ -62,7 +76,7 @@ app.get('/upload', (req, res) => {
           fileType: file.type.split('/')[1]
         };
 
-        const response = await fetch(window.location.href + 'upload', {
+        const response = await fetch(window.location.href + 'api/upload/json', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
