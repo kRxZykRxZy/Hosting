@@ -1,20 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-
 const app = express();
 
 // Middleware
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// Static folder for uploads
+// Serve static files from the "uploads" folder
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 // Import route files
-const authRoutes = require('./auth.js');
-const uploadRoutes = require('./upload.js');
-const homeRoutes = require('./home.js');
+const authRoutes = require('./auth').router;
+const uploadRoutes = require('./upload');
+const homeRoutes = require('./home');
 
 // Mount routes
 app.use(authRoutes);
