@@ -110,7 +110,8 @@ app.get('/upload', (req, res) => {
           image: base64Image,
           ip: ip,
           imageName: file.name,
-          fileType: fileType
+          fileType: fileType,
+          username: localStorage.getItem('loggedIn')
         };
 
         const response = await fetch('/api/upload/json', {
@@ -138,25 +139,25 @@ app.get('/upload', (req, res) => {
 
 // Image upload handling route
 app.post('/api/upload/json', (req, res) => {
-  const { image, ip, imageName, fileType } = req.body;
-  if (!image || !ip || !imageName || !fileType) return res.status(400).send('Image, IP, imageName, and fileType are required');
+  const { image, ip, imageName, fileType, username } = req.body;
+  if (!image || !ip || !imageName || !fileType || !username) return res.status(400).send('Image, IP, imageName, username and fileType are required');
   
   const buffer = Buffer.from(image, 'base64');
-  const imagePath = path.join(__dirname, 'uploads', `${ip}`, `${imageName}`);
+  const imagePath = path.join(__dirname, 'uploads', `${username}`, `${imageName}`);
 
-  fs.mkdir(path.join(__dirname, 'uploads', ip), { recursive: true }, (err) => {
+  fs.mkdir(path.join(__dirname, 'uploads', username), { recursive: true }, (err) => {
     if (err) return res.status(500).send('Error creating directory');
     
     fs.writeFile(`${imagePath}.${fileType}`, buffer, (err) => {
       if (err) return res.status(500).send('Error saving the image');
-      const url = `https://${req.headers.host}/${ip}/${imageName}.${fileType}`;
+      const url = `https://${req.headers.host}/${username}/${imageName}.${fileType}`;
       res.send(url);
     });
   });
 });
 
 // Serve static files from the 'uploads' directory
-app.use('/:ip', express.static(path.join(__dirname, 'uploads')));
+app.use('/:username', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
