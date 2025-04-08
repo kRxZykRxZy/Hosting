@@ -2,10 +2,41 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static('uploads')); // Serve static files
+
+const users = [
+  { username: 'admin', passwordHash: bcrypt.hashSync('password123', 10) }, // Example user
+];
+
+// Handle POST request for login
+app.post('/api/login/json', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(user => user.username === username);
+
+  if (user && bcrypt.compareSync(password, user.passwordHash)) {
+    res.json({ message: 'Login successful', username });
+  } else {
+    res.status(401).json({ message: 'Login failed. Invalid username or password.' });
+  }
+});
+
+// Handle POST request for signup
+app.post('/api/signup/json', (req, res) => {
+  const { username, password } = req.body;
+  
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    return res.status(400).json({ message: 'Username already taken' });
+  }
+  const passwordHash = bcrypt.hashSync(password, 10);
+  users.push({ username, passwordHash });
+
+  res.json({ message: 'User successfully created', username });
+});
 
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
