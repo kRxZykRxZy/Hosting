@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
       <input type="file" id="imageInput" class="form-control mb-3" />
     </div>
     <div class="text-center">
-      <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button>
+      <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button><br>
       <a id="link" href="#" style="color: green;"><a>
     </div>
   </div>
