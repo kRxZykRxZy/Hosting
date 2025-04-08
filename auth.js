@@ -54,6 +54,7 @@ router.get('/login', (req, res) => {
           if (response.ok) {
             // Store username in localStorage
             localStorage.setItem('loggedIn', data.username);
+            localStorage.setItem('password', password);
             // Redirect to home page
             window.location.href = '/';
           } else {
