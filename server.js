@@ -1,164 +1,26 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const fs = require("fs");
-const path = require("path");
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require('path');
+
 const app = express();
 
+// Middleware
 app.use(bodyParser.json({ limit: '10mb' }));
-app.use(express.static('uploads')); // Serve static files
+app.use(bodyParser.urlencoded({ extended: false }));
 
+// Static folder for uploads
+app.use(express.static(path.join(__dirname, 'uploads')));
 
-app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UBBload Home</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-white">
-  <div class="container text-center mt-5">
-    <h1>Welcome to UBBload</h1>
-    <p>Upload your images and share the links easily!</p>
+// Import route files (these are the 2 separate scripts)
+const authRoutes = require('./auth');
+const uploadRoutes = require('./upload');
 
-    <!-- Upload Button (will be visible only if logged in) -->
-    <a href="/upload" class="btn btn-primary btn-lg my-3" id="uploadBtn" style="display: none;">Go to Image Upload</a>
+// Mount routes
+app.use(authRoutes);
+app.use(uploadRoutes);
 
-    <!-- Login Button (will be hidden if logged in) -->
-    <a href="/login" class="btn btn-secondary btn-lg my-3" id="loginBtn">Login</a>
-
-    <!-- Signup Button (will be hidden if logged in) -->
-    <a href="/signup" class="btn btn-success btn-lg my-3" id="signupBtn">Signup</a>
-  </div>
-
-  <script>
-    // Check if user is logged in by checking localStorage
-    const loggedIn = localStorage.getItem('loggedIn');
-    
-    if (loggedIn) {
-      // If logged in, hide login and signup buttons, show upload button
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('signupBtn').style.display = 'none';
-      document.getElementById('uploadBtn').style.display = 'inline-block';
-    } else {
-      // If not logged in, show login/signup buttons, hide upload button
-      document.getElementById('loginBtn').style.display = 'inline-block';
-      document.getElementById('signupBtn').style.display = 'inline-block';
-      document.getElementById('uploadBtn').style.display = 'none';
-    }
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-</body>
-</html>
-`);
-});
-
-// Upload route
-app.get('/upload', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UBBload Image Uploading</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-white">
-
-  <div class="container my-5">
-    <h2 class="text-center">Upload an Image</h2>
-    <div class="d-flex justify-content-center">
-      <input type="file" id="imageInput" class="form-control mb-3" />
-    </div>
-    <div class="text-center">
-      <button class="btn btn-primary" onclick="uploadImage()">Upload Image</button><br>
-      <br>
-      <a id="link" href="#" style="color: green;"></a>
-    </div>
-  </div>
-
-  <script>
-    const imageLink = document.getElementById('link');
-    async function uploadImage() {
-      const fileInput = document.getElementById('imageInput');
-      const file = fileInput.files[0];
-      if (!file) {
-        alert('Please select an image');
-        return;
-      }
-
-      const res = await fetch('https://api.ipify.org/?format=json');
-      const ipData = await res.json();
-      const ip = ipData.ip;
-
-      const reader = new FileReader();
-      reader.onloadend = async function () {
-        const base64Image = reader.result.split(',')[1];
-
-        const fileType = file.name.split('.').pop();
-        if (!['jpg', 'png', 'webp', 'jpeg'].includes(fileType)) {
-          alert("Invalid File Type");
-          setTimeout(() => {
-            location.reload();
-          }, 2000);
-          return;
-        }
-
-        const formData = {
-          image: base64Image,
-          ip: ip,
-          imageName: file.name,
-          fileType: fileType,
-          username: localStorage.getItem('loggedIn')
-        };
-
-        const response = await fetch('/api/upload/json', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(formData)
-        });
-
-        const result = await response.text();
-        imageLink.href = result;
-        imageLink.textContent = "View Upload";
-      };
-      
-      reader.readAsDataURL(file);
-    }
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-</body>
-</html>`);
-});
-
-// Image upload handling route
-app.post('/api/upload/json', (req, res) => {
-  const { image, ip, imageName, fileType, username } = req.body;
-  if (!image || !ip || !imageName || !fileType || !username) return res.status(400).send('Image, IP, imageName, username and fileType are required');
-  
-  const buffer = Buffer.from(image, 'base64');
-  const imagePath = path.join(__dirname, 'uploads', `${username}`, `${imageName}`);
-
-  fs.mkdir(path.join(__dirname, 'uploads', username), { recursive: true }, (err) => {
-    if (err) return res.status(500).send('Error creating directory');
-    
-    fs.writeFile(`${imagePath}.${fileType}`, buffer, (err) => {
-      if (err) return res.status(500).send('Error saving the image');
-      const url = `https://${req.headers.host}/${username}/${imageName}.${fileType}`;
-      res.send(url);
-    });
-  });
-});
-
-// Serve static files from the 'uploads' directory
-app.use('/:username', express.static(path.join(__dirname, 'uploads')));
-
+// ONE app.listen here
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
