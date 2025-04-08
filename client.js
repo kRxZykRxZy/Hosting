@@ -38,8 +38,10 @@ app.post('/api/signup/json', (req, res) => {
   res.json({ message: 'User successfully created', username });
 });
 
-// Serve the login page (GET)
 app.post('/login', (req, res) => {
+ });
+// Serve the login page (GET)
+app.get('/login', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -82,6 +84,9 @@ app.post('/login', (req, res) => {
 
 // Serve the signup page (GET)
 app.post('/signup', (req, res) => {
+});
+
+app.get('/signup', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
