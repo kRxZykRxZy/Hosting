@@ -37,4 +37,4 @@ router.post('/api/signup/json', (req, res) => {
   res.json({ message: 'User created', username });
 });
 
-module.exports = { router, verifyPassword };
+module.exports = router;
