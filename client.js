@@ -38,8 +38,6 @@ app.post('/api/signup/json', (req, res) => {
   res.json({ message: 'User successfully created', username });
 });
 
-app.post('/login', (req, res) => {
- });
 // Serve the login page (GET)
 app.get('/login', (req, res) => {
   res.send(`
@@ -56,7 +54,7 @@ app.get('/login', (req, res) => {
         <div class="row justify-content-center align-items-center" style="height: 100vh;">
           <div class="col-4">
             <h3 class="text-center">Login</h3>
-            <form action="/api/login/json" method="POST">
+            <form id="loginForm">
               <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username" required>
@@ -77,15 +75,41 @@ app.get('/login', (req, res) => {
       </div>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+      <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent form submission
+          
+          const username = document.getElementById('username').value;
+          const password = document.getElementById('password').value;
+          
+          fetch('/api/login/json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'Login successful') {
+              localStorage.setItem('loggedIn', data.username); // Store the username in localStorage
+              window.location.href = '/dashboard'; // Redirect to dashboard or home page
+            } else {
+              alert('Login failed. Invalid username or password.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred during login.');
+          });
+        });
+      </script>
     </body>
     </html>
   `);
 });
 
 // Serve the signup page (GET)
-app.post('/signup', (req, res) => {
-});
-
 app.get('/signup', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -101,7 +125,7 @@ app.get('/signup', (req, res) => {
         <div class="row justify-content-center align-items-center" style="height: 100vh;">
           <div class="col-4">
             <h3 class="text-center">Sign Up</h3>
-            <form action="/api/signup/json" method="POST">
+            <form id="signupForm">
               <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
                 <input type="text" class="form-control" id="username" name="username" required>
@@ -115,13 +139,42 @@ app.get('/signup', (req, res) => {
               </div>
             </form>
             <p class="text-center mt-3">
-              <a href="/" class="text-white">Already have an account? Login here</a>
+              <a href="/login" class="text-white">Already have an account? Login here</a>
             </p>
           </div>
         </div>
       </div>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+      <script>
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent form submission
+          
+          const username = document.getElementById('username').value;
+          const password = document.getElementById('password').value;
+          
+          fetch('/api/signup/json', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === 'User successfully created') {
+              alert('User successfully created, please log in.');
+              window.location.href = '/login'; // Redirect to login page after signup
+            } else {
+              alert('Signup failed: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred during signup.');
+          });
+        });
+      </script>
     </body>
     </html>
   `);
