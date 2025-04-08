@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'uploads')));
 
 // Import route files
-const authRoutes = require('./auth').router;
+const authRoutes = require('./auth');
 const uploadRoutes = require('./upload');
 const homeRoutes = require('./home');
 
